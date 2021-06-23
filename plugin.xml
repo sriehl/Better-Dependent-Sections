@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<plugin xmlns="http://plugin.powerschool.pearson.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://plugin.powerschool.pearson.com plugin.xsd" name="SER - Better Dependent Sections" version="1.0.2" description="A better way to enter dependent sections">
+  <publisher name="Steven Riehl">
+    <contact email="riehls@billingsschools.org"/>
+  </publisher>
+</plugin>

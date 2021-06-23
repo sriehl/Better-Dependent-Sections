@@ -1,0 +1,148 @@
+
+<!-- Better Dependent Sections -->
+
+<style type="text/css">
+    [v-cloak] {display: none;}
+</style>
+
+<div style="display: none">
+    <div id="addDependentSectionForm" style="margin: 10px 0;">
+        <button v-on:click.self.prevent="addDependentSection" v-bind:class="addSectionButtonEnabled ? '' : 'disabled'">Add Dependent Section</button>
+        <select v-model="filterCourseName">
+            <option value="">Pick Course</option>
+            <option v-for="course in allCourses">{{ course }}</option>
+        </select>
+        <select v-model="filterSectionSelection">
+            <option value="">Pick Section</option>
+            <option v-for="section in sectionsFilteredByfilterCourseName" v-bind:value="section.course_number + '.' + section.section_number">{{ section.section_number }} - {{ section.teacher }}</option>
+        </select>
+    </div>
+    <table class="grid" id="selectedDependentSections">
+        <thead>
+            <tr>
+                <th>Course Name</th>
+                <th>Course Number</th>
+                <th>Section Number</th>
+                <th>Teacher</th>
+                <th>Remove</th>
+            </tr>
+        </thead>
+        <tbody v-cloak>
+            <tr v-for="section in selectedSections">
+                <td>{{ section.course_name }}</td>
+                <td>{{ section.course_number }}</td>
+                <td>{{ section.section_number }}</td>
+                <td>{{ section.teacher }}</td>
+                <td><button v-on:click.self.prevent="section.selected = false">Remove</button></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+require.config({
+    paths: {
+        'vue': 'https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min'
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const textArea = document.querySelector('textarea[name^="UF-112012"]');
+    const td = textArea.parentElement;
+
+    textArea.readOnly = true;
+    textArea.classList.add('hidden');
+    const origDependentSections = textArea.value.split(',');
+    textArea.value = '';
+    textArea.setAttribute('v-model', 'selectedSectionsValue');
+
+    td.appendChild(document.getElementById('addDependentSectionForm'));
+    td.appendChild(document.getElementById('selectedDependentSections'));
+
+    require(['vue'], function(Vue) {
+        app = new Vue({
+            el: td,
+            methods: {
+                addDependentSection: function(event) {
+                    const filterSectionSelection = this.filterSectionSelection;
+
+                    this.sections = this.sections.map(function(section) {
+                        if (section.course_number + '.' + section.section_number === filterSectionSelection) {
+                            section.selected = true;
+                        }
+                        return section;
+                    });
+
+                    this.filterCourseName = '';
+                    this.filterSectionSelection = '';
+                }
+            },
+            computed: {
+                selectedSections: function() {
+                    return this.sections.filter(function(section) {
+                        return section.selected;
+                    })
+                },
+                selectedSectionsValue: function() {
+                    return this.selectedSections
+                    .map(function(section) {
+                        return section.course_number + '.' + section.section_number;
+                    })
+                    .join(',');
+                },
+                allCourses: function() {
+                    return Array.from(new Set(this.sections.map(function(section) { return `${section.course_number} - ${section.course_name}` })));
+                },
+                sectionsFilteredByfilterCourseName: function() {
+                    const filterCourseName = this.filterCourseName;
+                    return this.sections.filter(function(section) {
+                        return `${section.course_number} - ${section.course_name}` === filterCourseName && section.selected === false;
+                    });
+                },
+                addSectionButtonEnabled: function() {
+                    return typeof(this.filterSectionSelection) === 'string' && this.filterSectionSelection !== '';
+                }
+            },
+            data: {
+                filterCourseName: '',
+                filterSectionSelection: '',
+                sections: [~[tlist_sql;
+                        with buildid as (
+                          select buildid from schedulebuilds where schoolid = ~(curschoolid) and currentbuild = 1
+                        )
+
+                        select
+                          json_object(
+                              'course_name' value courses.course_name
+                            , 'course_number' value courses.course_number
+                            , 'section_number' value schedulesections.section_number
+                            , 'teacher' value users.lastfirst
+                          ) sections
+                          , lead(',') over (order by null) delim
+                        from
+                          schedulesections
+                          left join courses
+                            on courses.course_number = schedulesections.course_number
+                          left join schoolstaff
+                            on schoolstaff.id = schedulesections.teacher
+                          left join users
+                            on users.dcid = schoolstaff.users_dcid
+                        where
+                          schedulesections.buildid = (select buildid from buildid)
+                          and '112' || schedulesections.dcid != '~(frn)'
+                        order by
+                          courses.course_number
+                          , users.lastfirst
+                          , schedulesections.section_number
+                    ]~(row)~(delim)[/tlist_sql]]
+                    .map(function(section) {
+                        section.selected = origDependentSections.includes(section.course_number + '.' + section.section_number);
+                        return section;
+                    })
+            }
+        });
+    });
+});
+</script>
+
+<!-- end Better Dependent Sections -->
